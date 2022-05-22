@@ -4,26 +4,28 @@ import "hardhat/console.sol";
 
 contract IndexPortal {
     uint256 totalIndexes;
-    event NewIndex(address indexed from, uint256 timestamp, string domain);
+    event NewIndex(address indexed from, uint256 timestamp, string domain, string sitename, string[] tags);
 
-    struct Index {
+    struct SiteIndex {
         address indexer;
-        string domain;
         uint256 timestamp;
+        string domain;
+        string sitename;
+        string[] tags;
     }
 
-    Index[] indexes;
+    SiteIndex[] indexes;
 
     constructor() payable {
         console.log("We have been constructed!");
     }    
 
-    function index(string memory _domain) public {
+    function index(string memory _domain, string memory _sitename, string[] memory _tags) public {
         totalIndexes += 1;
         console.log("%s indexd w/ domain %s", msg.sender, _domain);
-        indexes.push(Index(msg.sender, _domain, block.timestamp));
+        indexes.push(SiteIndex(msg.sender,  block.timestamp, _domain, _sitename, _tags));
         
-        emit NewIndex(msg.sender, block.timestamp, _domain);
+        emit NewIndex(msg.sender, block.timestamp, _domain, _sitename, _tags);
 
         // 「👋（index）」を送ってくれたユーザーに0.0001ETHを送る
         uint256 prizeAmount = 0.0001 ether;
@@ -35,7 +37,7 @@ contract IndexPortal {
         require(success, "Failed to withdraw money from contract.");
     }
 
-    function getAllIndexes() public view returns (Index[] memory) {
+    function getAllIndexes() public view returns (SiteIndex[] memory) {
         return indexes;
     }
 
