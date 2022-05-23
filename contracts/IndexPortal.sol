@@ -4,28 +4,27 @@ import "hardhat/console.sol";
 
 contract IndexPortal {
     uint256 totalIndexes;
-    event NewIndex(address indexed from, uint256 timestamp, string domain, string sitename, string[] tags);
+    event NewIndex(address indexed indexer, uint256 timestamp, string domain, string sitename);
 
     struct SiteIndex {
         address indexer;
         uint256 timestamp;
         string domain;
         string sitename;
-        string[] tags;
     }
 
-    SiteIndex[] indexes;
+    SiteIndex[] public indexes;
 
     constructor() payable {
         console.log("We have been constructed!");
     }    
 
-    function index(string memory _domain, string memory _sitename, string[] memory _tags) public {
+    function index(string memory _domain, string memory _sitename) public {
         totalIndexes += 1;
         console.log("%s indexd w/ domain %s", msg.sender, _domain);
-        indexes.push(SiteIndex(msg.sender,  block.timestamp, _domain, _sitename, _tags));
+        indexes.push(SiteIndex(msg.sender, block.timestamp, _domain, _sitename));
         
-        emit NewIndex(msg.sender, block.timestamp, _domain, _sitename, _tags);
+        emit NewIndex(msg.sender, block.timestamp, _domain, _sitename);
 
         // 「👋（index）」を送ってくれたユーザーに0.0001ETHを送る
         uint256 prizeAmount = 0.0001 ether;
