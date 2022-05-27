@@ -12,7 +12,15 @@ const main = async () => {
   console.log("Contract balance:", hre.ethers.utils.formatEther(contractBalance));
 
   // test index
-  let indexTxn = await indexContract.index("https://uniswap.org", "uniswap.org", 'Uniswap');
+  let indexTxn = await indexContract.index(
+    "https://uniswap.org",
+    "uniswap.org",
+    'Uniswap',
+    'Swap, earn, and build on the leading decentralized crypto trading protocol.',
+    Array('dex', 'ethereum', 'swap'),
+    Array(),
+    Array()
+  );
   await indexTxn.wait();
 
   contractBalance = await hre.ethers.provider.getBalance(indexContract.address);

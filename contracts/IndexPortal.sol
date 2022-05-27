@@ -4,7 +4,17 @@ import "hardhat/console.sol";
 
 contract IndexPortal {
     uint256 totalIndexes;
-    event NewIndex(address indexed indexer, uint256 timestamp, string url, string domain, string sitename);
+    event NewIndex(
+        address indexed indexer, 
+        uint256 timestamp, 
+        string url, 
+        string domain, 
+        string sitename,
+        string description,
+        string[] tags,
+        string[] approvers,
+        string[] rejectors
+    );
 
     struct SiteIndex {
         address indexer;
@@ -12,6 +22,10 @@ contract IndexPortal {
         string url;
         string domain;
         string sitename;
+        string description;
+        string[] tags;
+        string[] approvers;
+        string[] rejectors;
     }
 
     SiteIndex[] public indexes;
@@ -20,12 +34,20 @@ contract IndexPortal {
         console.log("We have been constructed!");
     }    
 
-    function index(string memory _url, string memory _domain, string memory _sitename) public {
+    function index(
+            string memory _url, 
+            string memory _domain, 
+            string memory _sitename, 
+            string memory _description, 
+            string[] memory _tags,
+            string[] memory _approvers,
+            string[] memory _rejectors
+        ) public {
         totalIndexes += 1;
         console.log("%s indexd w/ domain %s", msg.sender, _domain);
-        indexes.push(SiteIndex(msg.sender, block.timestamp, _url, _domain, _sitename));
+        indexes.push(SiteIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors));
         
-        emit NewIndex(msg.sender, block.timestamp, _url, _domain, _sitename);
+        emit NewIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors);
 
         // 「👋（index）」を送ってくれたユーザーに0.0001ETHを送る
         uint256 prizeAmount = 0.0001 ether;
