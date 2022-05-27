@@ -1,4 +1,5 @@
 const main = async () => {
+  const [owner] = await ethers.getSigners();
   const indexContractFactory = await hre.ethers.getContractFactory("IndexPortal");
   const indexContract = await indexContractFactory.deploy({
     value: hre.ethers.utils.parseEther("0.1"),
@@ -28,6 +29,26 @@ const main = async () => {
 
   let allIndexes = await indexContract.getAllIndexes();
   console.log("allIndexes: ", allIndexes);
+
+  // test upsertValidator
+  const upsertValidatorTxn = await indexContract.upsertValidator(owner.address);
+  await upsertValidatorTxn.wait();
+  const isValidator = await indexContract.checkValidator();
+  console.log('isValidator: ', isValidator);
+
+  // test approve
+  const approveTxn = await indexContract.approve(0);
+  await approveTxn.wait();
+  allIndexes = await indexContract.getAllIndexes();
+  console.log('approvers: ', allIndexes[0].approvers);
+  console.log('rejectors: ', allIndexes[0].rejectors);
+
+  // test reject
+  const rejectTxn = await indexContract.reject(0);
+  await rejectTxn.wait();
+  allIndexes = await indexContract.getAllIndexes();
+  console.log('approvers: ', allIndexes[0].approvers);
+  console.log('rejectors: ', allIndexes[0].rejectors);
 };
 
 const runMain = async () => {

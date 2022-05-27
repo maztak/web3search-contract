@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.4;
 import "hardhat/console.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
-contract IndexPortal {
+
+contract IndexPortal is Ownable, Pausable {
     uint256 totalIndexes;
+
     event NewIndex(
         address indexed indexer, 
         uint256 timestamp, 
@@ -12,8 +16,8 @@ contract IndexPortal {
         string sitename,
         string description,
         string[] tags,
-        string[] approvers,
-        string[] rejectors
+        address[] approvers,
+        address[] rejectors
     );
 
     struct SiteIndex {
@@ -24,11 +28,12 @@ contract IndexPortal {
         string sitename;
         string description;
         string[] tags;
-        string[] approvers;
-        string[] rejectors;
+        address[] approvers;
+        address[] rejectors;
     }
 
     SiteIndex[] public indexes;
+    mapping(address => bool) public isValidator;
 
     constructor() payable {
         console.log("We have been constructed!");
@@ -40,8 +45,8 @@ contract IndexPortal {
             string memory _sitename, 
             string memory _description, 
             string[] memory _tags,
-            string[] memory _approvers,
-            string[] memory _rejectors
+            address[] memory _approvers,
+            address[] memory _rejectors
         ) public {
         totalIndexes += 1;
         console.log("%s indexd w/ domain %s", msg.sender, _domain);
@@ -59,8 +64,57 @@ contract IndexPortal {
         require(success, "Failed to withdraw money from contract.");
     }
 
+    function upsertValidator(address _account) external onlyOwner {
+        isValidator[_account] = true;
+    }
+
+    modifier onlyValidator() {
+        require(isValidator[msg.sender], 'You are not validator');
+        _;                                                                                                                                                                                                                                         
+    }
+
+    function approve(uint _indexId) external onlyValidator {
+        for (uint j = 0; j < indexes[_indexId].approvers.length; j++) {
+            if (indexes[_indexId].approvers[j] == msg.sender) {
+                return;
+            }
+        }    
+        indexes[_indexId].approvers.push(msg.sender);
+
+        for (uint j = 0; j < indexes[_indexId].rejectors.length; j++) {
+            if (indexes[_indexId].rejectors[j] == msg.sender) {
+                delete indexes[_indexId].rejectors[j];
+                return;
+            }
+        }
+    }
+
+    function reject(uint _indexId) external onlyValidator {
+        for (uint j = 0; j < indexes[_indexId].rejectors.length; j++) {
+            if (indexes[_indexId].rejectors[j] == msg.sender) {
+                return;
+            }
+        }
+        indexes[_indexId].rejectors.push(msg.sender);
+
+        for (uint j = 0; j < indexes[_indexId].approvers.length; j++) {
+            if (indexes[_indexId].approvers[j] == msg.sender) {
+                delete indexes[_indexId].approvers[j];
+                return;
+            }
+        }
+    }
+
     function getAllIndexes() public view returns (SiteIndex[] memory) {
         return indexes;
+    }
+
+    function checkValidator() public view returns (bool) {
+        return isValidator[msg.sender];
+    }
+
+    function getAllValidators() public view returns (address[] memory) {
+        
     }
 
     function getTotalIndexes() public view returns (uint256) {
