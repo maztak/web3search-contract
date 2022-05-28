@@ -90,7 +90,7 @@ contract IndexPortal is Ownable, Pausable {
 
         for (uint j = 0; j < indexes[_indexId].rejectors.length; j++) {
             if (indexes[_indexId].rejectors[j] == msg.sender) {
-                delete indexes[_indexId].rejectors[j];
+                deleteRejector(_indexId, j);
                 return;
             }
         }
@@ -106,10 +106,24 @@ contract IndexPortal is Ownable, Pausable {
 
         for (uint j = 0; j < indexes[_indexId].approvers.length; j++) {
             if (indexes[_indexId].approvers[j] == msg.sender) {
-                delete indexes[_indexId].approvers[j];
+                deleteApprover(_indexId, j);
                 return;
             }
         }
+    }
+
+    function deleteApprover(uint _siteIndexId, uint _approverIndex) internal {
+        for(uint i = _approverIndex; i < indexes[_siteIndexId].approvers.length-1; i++){
+            indexes[_siteIndexId].approvers[i] = indexes[_siteIndexId].approvers[i+1];
+        }
+        indexes[_siteIndexId].approvers.pop();
+    }
+
+    function deleteRejector(uint _siteIndexId, uint _rejectorIndex) internal {
+        for(uint i = _rejectorIndex; i < indexes[_siteIndexId].rejectors.length-1; i++){
+            indexes[_siteIndexId].rejectors[i] = indexes[_siteIndexId].rejectors[i+1];
+        }
+        indexes[_siteIndexId].rejectors.pop();
     }
 
     function getAllIndexes() public view returns (SiteIndex[] memory) {
