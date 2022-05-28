@@ -13,6 +13,9 @@ const main = async () => {
   console.log("Contract balance:", hre.ethers.utils.formatEther(contractBalance));
 
   // test index
+  let indexCount = await indexContract.getIndexCount()
+  console.log('indexCount: ', indexCount)
+
   let indexTxn = await indexContract.index(
     "https://uniswap.org",
     "uniswap.org",
@@ -29,6 +32,9 @@ const main = async () => {
 
   let allIndexes = await indexContract.getAllIndexes();
   console.log("allIndexes: ", allIndexes);
+
+  indexCount = await indexContract.getIndexCount()
+  console.log('indexCount: ', indexCount)
 
   // test upsertValidator
   const upsertValidatorTxn = await indexContract.upsertValidator(owner.address);

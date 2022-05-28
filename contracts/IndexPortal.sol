@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 
 
 contract IndexPortal is Ownable, Pausable {
-    uint256 totalIndexes;
+    uint256 indexCount;
 
     event NewIndex(
         address indexed indexer, 
@@ -48,13 +48,13 @@ contract IndexPortal is Ownable, Pausable {
             address[] memory _approvers,
             address[] memory _rejectors
         ) public {
-        totalIndexes += 1;
+        indexCount += 1;
         console.log("%s indexd w/ domain %s", msg.sender, _domain);
         indexes.push(SiteIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors));
         
         emit NewIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors);
 
-        // 「👋（index）」を送ってくれたユーザーに0.0001ETHを送る
+        // 「index」を送ってくれたユーザーに0.0001ETHを送る
         uint256 prizeAmount = 0.0001 ether;
         require(
             prizeAmount <= address(this).balance,
@@ -117,8 +117,8 @@ contract IndexPortal is Ownable, Pausable {
         
     }
 
-    function getTotalIndexes() public view returns (uint256) {
-        console.log("We have %d total indexes!", totalIndexes);
-        return totalIndexes;
+    function getIndexCount() public view returns (uint256) {
+        console.log("We have %d indexes!", indexCount);
+        return indexCount;
     }
 }
