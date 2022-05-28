@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 
 contract IndexPortal is Ownable, Pausable {
     uint256 indexCount;
+    uint256 validatorCount;
 
     event NewIndex(
         address indexed indexer, 
@@ -66,6 +67,12 @@ contract IndexPortal is Ownable, Pausable {
 
     function upsertValidator(address _account) external onlyOwner {
         isValidator[_account] = true;
+        validatorCount++;
+    }
+
+    function deleteValidator(address _account) external onlyOwner {
+        isValidator[_account] = false;
+        validatorCount--;
     }
 
     modifier onlyValidator() {
@@ -113,8 +120,12 @@ contract IndexPortal is Ownable, Pausable {
         return isValidator[msg.sender];
     }
 
+    function getValidatorCount() public view returns (uint256) {
+        return validatorCount;
+    }
+
     function getAllValidators() public view returns (address[] memory) {
-        
+
     }
 
     function getIndexCount() public view returns (uint256) {

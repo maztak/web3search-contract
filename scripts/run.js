@@ -12,6 +12,10 @@ const main = async () => {
   );
   console.log("Contract balance:", hre.ethers.utils.formatEther(contractBalance));
 
+  let allIndexes;
+  let isValidator;
+  let validatorCount;
+
   // test index
   let indexCount = await indexContract.getIndexCount()
   console.log('indexCount: ', indexCount)
@@ -30,7 +34,7 @@ const main = async () => {
   contractBalance = await hre.ethers.provider.getBalance(indexContract.address);
   console.log("Contract balance:", hre.ethers.utils.formatEther(contractBalance));
 
-  let allIndexes = await indexContract.getAllIndexes();
+  allIndexes = await indexContract.getAllIndexes();
   console.log("allIndexes: ", allIndexes);
 
   indexCount = await indexContract.getIndexCount()
@@ -39,8 +43,11 @@ const main = async () => {
   // test upsertValidator
   const upsertValidatorTxn = await indexContract.upsertValidator(owner.address);
   await upsertValidatorTxn.wait();
-  const isValidator = await indexContract.checkValidator();
+  isValidator = await indexContract.checkValidator();
   console.log('isValidator: ', isValidator);
+
+  validatorCount = await indexContract.getValidatorCount()
+  console.log('validatorCount: ', validatorCount);
 
   // test approve
   const approveTxn = await indexContract.approve(0);
@@ -55,6 +62,14 @@ const main = async () => {
   allIndexes = await indexContract.getAllIndexes();
   console.log('approvers: ', allIndexes[0].approvers);
   console.log('rejectors: ', allIndexes[0].rejectors);
+
+  // test deleteValidator
+  const deleteValidatorTxn = await indexContract.deleteValidator(owner.address);
+  await deleteValidatorTxn.wait();
+  isValidator = await indexContract.checkValidator();
+  console.log('isValidator: ', isValidator);
+  validatorCount = await indexContract.getValidatorCount()
+  console.log('validatorCount: ', validatorCount);
 };
 
 const runMain = async () => {
