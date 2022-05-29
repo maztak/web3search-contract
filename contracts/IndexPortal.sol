@@ -18,7 +18,8 @@ contract IndexPortal is Ownable, Pausable {
         string description,
         string[] tags,
         address[] approvers,
-        address[] rejectors
+        address[] rejectors,
+        address[] stayers
     );
 
     struct SiteIndex {
@@ -31,9 +32,16 @@ contract IndexPortal is Ownable, Pausable {
         string[] tags;
         address[] approvers;
         address[] rejectors;
+        address[] stayers;
+    }
+
+    struct User {
+        address account;    
     }
 
     SiteIndex[] public indexes;
+    User[] public users;
+    mapping(address => bool) public isIndexer;
     mapping(address => bool) public isValidator;
 
     constructor() payable {
@@ -47,13 +55,14 @@ contract IndexPortal is Ownable, Pausable {
             string memory _description, 
             string[] memory _tags,
             address[] memory _approvers,
-            address[] memory _rejectors
-        ) public {
+            address[] memory _rejectors,
+            address[] memory _stayers
+        ) public onlyIndexer {
         indexCount += 1;
         console.log("%s indexd w/ domain %s", msg.sender, _domain);
-        indexes.push(SiteIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors));
+        indexes.push(SiteIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors, _stayers));
         
-        emit NewIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors);
+        emit NewIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors, _stayers);
 
         // 「index」を送ってくれたユーザーに0.0001ETHを送る
         uint256 prizeAmount = 0.0001 ether;
@@ -65,14 +74,39 @@ contract IndexPortal is Ownable, Pausable {
         require(success, "Failed to withdraw money from contract.");
     }
 
+    function upsertIndexer(address _account) external onlyOwner {
+        isIndexer[_account] = true;
+        for (uint256 i = 0; i < users.length; i++) {
+            if (users[i].account == _account) {
+                return;
+            }
+        }
+        users.push(User(msg.sender));
+    }
+
+    function deleteIndexer(address _account) external onlyOwner {
+        isIndexer[_account] = false;
+    }
+
     function upsertValidator(address _account) external onlyOwner {
         isValidator[_account] = true;
         validatorCount++;
+        for (uint256 i = 0; i < users.length; i++) {
+            if (users[i].account == _account) {
+                return;
+            }
+        }
+        users.push(User(msg.sender));
     }
 
     function deleteValidator(address _account) external onlyOwner {
         isValidator[_account] = false;
         validatorCount--;
+    }
+
+     modifier onlyIndexer() {
+        require(isIndexer[msg.sender], 'You are not indexer');
+        _;                                                                                                                                                                                                                                         
     }
 
     modifier onlyValidator() {
@@ -94,6 +128,13 @@ contract IndexPortal is Ownable, Pausable {
                 return;
             }
         }
+
+        for (uint j = 0; j < indexes[_indexId].stayers.length; j++) {
+            if (indexes[_indexId].stayers[j] == msg.sender) {
+                deleteStayer(_indexId, j);
+                return;
+            }
+        }
     }
 
     function reject(uint _indexId) external onlyValidator {
@@ -107,6 +148,36 @@ contract IndexPortal is Ownable, Pausable {
         for (uint j = 0; j < indexes[_indexId].approvers.length; j++) {
             if (indexes[_indexId].approvers[j] == msg.sender) {
                 deleteApprover(_indexId, j);
+                return;
+            }
+        }
+
+        for (uint j = 0; j < indexes[_indexId].stayers.length; j++) {
+            if (indexes[_indexId].stayers[j] == msg.sender) {
+                deleteStayer(_indexId, j);
+                return;
+            }
+        }
+    }
+
+    function stay(uint _indexId) external onlyValidator {
+        for (uint j = 0; j < indexes[_indexId].stayers.length; j++) {
+            if (indexes[_indexId].stayers[j] == msg.sender) {
+                return;
+            }
+        }
+        indexes[_indexId].stayers.push(msg.sender);
+
+        for (uint j = 0; j < indexes[_indexId].approvers.length; j++) {
+            if (indexes[_indexId].approvers[j] == msg.sender) {
+                deleteApprover(_indexId, j);
+                return;
+            }
+        }
+
+        for (uint j = 0; j < indexes[_indexId].rejectors.length; j++) {
+            if (indexes[_indexId].rejectors[j] == msg.sender) {
+                deleteRejector(_indexId, j);
                 return;
             }
         }
@@ -126,8 +197,19 @@ contract IndexPortal is Ownable, Pausable {
         indexes[_siteIndexId].rejectors.pop();
     }
 
+    function deleteStayer(uint _siteIndexId, uint _stayerIndex) internal {
+        for(uint i = _stayerIndex; i < indexes[_siteIndexId].stayers.length-1; i++){
+            indexes[_siteIndexId].stayers[i] = indexes[_siteIndexId].stayers[i+1];
+        }
+        indexes[_siteIndexId].stayers.pop();
+    }
+
     function getAllIndexes() public view returns (SiteIndex[] memory) {
         return indexes;
+    }
+
+    function checkIndexer() public view returns (bool) {
+        return isIndexer[msg.sender];
     }
 
     function checkValidator() public view returns (bool) {
@@ -138,8 +220,32 @@ contract IndexPortal is Ownable, Pausable {
         return validatorCount;
     }
 
-    function getAllValidators() public view returns (address[] memory) {
+    function getAllUsers() public view returns (User[] memory) {
+        return users;
+    }
 
+    function getAllIndexers() public view returns (address[] memory) {
+        address[] memory _indexers = new address[](users.length);
+        uint counter = 0;
+        for (uint256 i = 0; i < users.length; i++) {
+            if (isIndexer[users[i].account]) {
+                _indexers[counter] = users[i].account;
+                counter++;
+            }
+        }    
+        return _indexers;
+    }
+
+    function getAllValidators() public view returns (address[] memory) {
+        address[] memory _validators = new address[](users.length);
+        uint counter = 0;
+        for (uint256 i = 0; i < users.length; i++) {
+            if (isValidator[users[i].account]) {
+                _validators[counter] = users[i].account;
+                counter++;
+            }
+        }    
+        return _validators;
     }
 
     function getIndexCount() public view returns (uint256) {
