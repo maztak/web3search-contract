@@ -81,7 +81,7 @@ contract IndexPortal is Ownable, Pausable {
                 return;
             }
         }
-        users.push(User(msg.sender));
+        users.push(User(_account));
     }
 
     function deleteIndexer(address _account) external onlyOwner {
@@ -96,7 +96,7 @@ contract IndexPortal is Ownable, Pausable {
                 return;
             }
         }
-        users.push(User(msg.sender));
+        users.push(User(_account));
     }
 
     function deleteValidator(address _account) external onlyOwner {
