@@ -35,11 +35,13 @@ const main = async () => {
   console.log('indexCount: ', indexCount)
 
   let indexTxn = await indexContract.index(
-    "https://uniswap.org",
-    "uniswap.org",
+    "https://app.uniswap.org",
+    "app.uniswap.org",
     'Uniswap',
     'Swap, earn, and build on the leading decentralized crypto trading protocol.',
-    Array('dex', 'ethereum', 'swap'),
+    Array('DEX'),
+    Array('Ethereum'),
+    Array('swap'),
     Array(),
     Array(),
     Array()
@@ -55,6 +57,12 @@ const main = async () => {
   indexCount = await indexContract.getIndexCount()
   console.log('indexCount: ', indexCount)
 
+  // test updateSitename
+  const updateSitenameTxn = await indexContract.updateSitename(0, "Uniswap Interface");
+  await updateSitenameTxn.wait();
+  allIndexes = await indexContract.getAllIndexes();
+  console.log("allIndexes: ", allIndexes);
+
   // test upsertValidator
   const upsertValidatorTxn = await indexContract.upsertValidator(owner.address);
   await upsertValidatorTxn.wait();
@@ -69,6 +77,30 @@ const main = async () => {
 
   users = await indexContract.getAllUsers();
   console.log('users: ', users);
+
+  // test updateDescription
+  const updateDescriptionTxn = await indexContract.updateDescription(0, 'Swap or provide liquidity on the Uniswap Protocol.');
+  await updateDescriptionTxn.wait();
+  allIndexes = await indexContract.getAllIndexes();
+  console.log("allIndexes: ", allIndexes);
+
+  // test updateCategories
+  const updateCategoriesTxn = await indexContract.updateCategories(0, Array('DEX', 'DeFi', 'AMM'));
+  await updateCategoriesTxn.wait();
+  allIndexes = await indexContract.getAllIndexes();
+  console.log("allIndexes: ", allIndexes);
+
+  // test updateChains
+  const updateChainsTxn = await indexContract.updateChains(0, Array('Ethereum', 'Polygon', 'Optimizm', 'Arbitrum'));
+  await updateChainsTxn.wait();
+  allIndexes = await indexContract.getAllIndexes();
+  console.log("allIndexes: ", allIndexes);
+  
+  // test updateTags
+  const updateTagsTxn = await indexContract.updateTags(0, Array('swap', 'liquidity', 'lp', 'uni'));
+  await updateTagsTxn.wait();
+  allIndexes = await indexContract.getAllIndexes();
+  console.log("allIndexes: ", allIndexes);
 
   // test approve
   const approveTxn = await indexContract.approve(0);
@@ -120,6 +152,18 @@ const main = async () => {
 
   users = await indexContract.getAllUsers();
   console.log('users: ', users);
+
+    // // test updateDescription
+    // const updateDescriptionTxn = await indexContract.updateDescription(0, 'Swap or provide liquidity on the Uniswap Protocol.');
+    // await updateDescriptionTxn.wait();
+    // allIndexes = await indexContract.getAllIndexes();
+    // console.log("allIndexes: ", allIndexes);
+  
+    // // test updateTags
+    // const updateTagsTxn = await indexContract.updateTags(0, Array('dex', 'defi', 'swap', 'liquidity'));
+    // await updateTagsTxn.wait();
+    // allIndexes = await indexContract.getAllIndexes();
+    // console.log("allIndexes: ", allIndexes);
 };
 
 const runMain = async () => {

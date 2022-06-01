@@ -16,6 +16,8 @@ contract IndexPortal is Ownable, Pausable {
         string domain, 
         string sitename,
         string description,
+        string[] categories,
+        string[] chains,
         string[] tags,
         address[] approvers,
         address[] rejectors,
@@ -29,6 +31,8 @@ contract IndexPortal is Ownable, Pausable {
         string domain;
         string sitename;
         string description;
+        string[] categories;
+        string[] chains;
         string[] tags;
         address[] approvers;
         address[] rejectors;
@@ -52,7 +56,9 @@ contract IndexPortal is Ownable, Pausable {
             string memory _url, 
             string memory _domain, 
             string memory _sitename, 
-            string memory _description, 
+            string memory _description,
+            string[] memory _categories,
+            string[] memory _chains,
             string[] memory _tags,
             address[] memory _approvers,
             address[] memory _rejectors,
@@ -60,18 +66,38 @@ contract IndexPortal is Ownable, Pausable {
         ) public onlyIndexer {
         indexCount += 1;
         console.log("%s indexd w/ domain %s", msg.sender, _domain);
-        indexes.push(SiteIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors, _stayers));
+        indexes.push(SiteIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _categories, _chains, _tags, _approvers, _rejectors, _stayers));
         
-        emit NewIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _tags, _approvers, _rejectors, _stayers);
+        emit NewIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _categories, _chains, _tags, _approvers, _rejectors, _stayers);
 
-        // 「index」を送ってくれたユーザーに0.0001ETHを送る
-        uint256 prizeAmount = 0.0001 ether;
+        // 「index」を送ってくれたユーザーに0.0039 ETHを送る
+        uint256 prizeAmount = 0.0039 ether;
         require(
             prizeAmount <= address(this).balance,
             "Trying to withdraw more money than the contract has."
         );
         (bool success, ) = (msg.sender).call{value: prizeAmount}("");
         require(success, "Failed to withdraw money from contract.");
+    }
+
+    function updateSitename(uint256 _indexId, string memory _sitename) public onlyOwner {
+        indexes[_indexId].sitename = _sitename;
+    }
+
+    function updateDescription(uint256 _indexId, string memory _description) public onlyValidator {
+        indexes[_indexId].description = _description;
+    }
+
+    function updateCategories(uint256 _indexId, string[] memory _categories) public onlyValidator {
+        indexes[_indexId].categories = _categories;
+    }
+
+    function updateChains(uint256 _indexId, string[] memory _chains) public onlyValidator {
+        indexes[_indexId].chains = _chains;
+    }
+
+    function updateTags(uint256 _indexId, string[] memory _tags) public onlyValidator {
+        indexes[_indexId].tags = _tags;
     }
 
     function upsertIndexer(address _account) external onlyOwner {
