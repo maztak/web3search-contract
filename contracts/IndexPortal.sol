@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -52,6 +52,11 @@ contract IndexPortal is Ownable, Pausable {
         console.log("We have been constructed!");
     }    
 
+    event Received(address, uint);
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
+    }
+
     function index(
             string memory _url, 
             string memory _domain, 
@@ -70,8 +75,8 @@ contract IndexPortal is Ownable, Pausable {
         
         emit NewIndex(msg.sender, block.timestamp, _url, _domain, _sitename, _description, _categories, _chains, _tags, _approvers, _rejectors, _stayers);
 
-        // 「index」を送ってくれたユーザーに0.0039 ETHを送る
-        uint256 prizeAmount = 0.0039 ether;
+        // 「index」を送ってくれたユーザーに0.001 ETHを送る
+        uint256 prizeAmount = 0.001 ether;
         require(
             prizeAmount <= address(this).balance,
             "Trying to withdraw more money than the contract has."
